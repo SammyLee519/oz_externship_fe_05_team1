@@ -1,25 +1,56 @@
-name: Upstream Sync
+name: Sync Fork with Upstream except workflows
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # 6시간마다 자동 실행
-  workflow_dispatch:
+    - cron: '0 */3 * * *' # 3시간마다 자동 실행
+  workflow_dispatch: # 수동 실행 버튼 활성화
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout target repo
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          ref: main
-          persist-credentials: false
+          fetch-depth: 0
+          # Secrets에 등록한 PAT를 사용
+          token: ${{ secrets.PAT }}
 
-      - name: Sync upstream
-        uses: aormsby/fork-sync-with-upstream-action@v3.4
-        with:
-          target_sync_branch: main
-          target_repo_token: ${{ secrets.GITHUB_TOKEN }}
-          upstream_sync_branch: develop # 학원 레포의 'develop'을 가져옴
-          upstream_sync_repo: OZ-Coding-School/oz_externship_fe_05_team1
-          test_mode: false
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Add upstream remote if not exists
+        run: |
+          # 학원 원본 레포 주소로 설정
+          git remote add upstream https://github.com/OZ-Coding-School/oz_externship_fe_05_team1.git || git remote set-url upstream https://github.com/OZ-Coding-School/oz_externship_fe_05_team1.git
+
+      - name: Fetch upstream changes
+        run: git fetch upstream
+
+      - name: Reset main branch to upstream/develop, keeping workflows
+        run: |
+          git checkout main
+
+          # 현재 내 개인레포의 .github/workflows 디렉토리를 임시 위치로 이동 (대피)
+          mkdir -p /tmp/workflows
+          cp -r .github/workflows/* /tmp/workflows/
+
+          # 학원 레포의 'develop' 브랜치 상태로 내 로컬 main을 강제로 덮어씀
+          git reset --hard upstream/develop
+
+          # 대피시켰던 워크플로우 파일들을 다시 복구
+          mkdir -p .github/workflows
+          cp -r /tmp/workflows/* .github/workflows/
+
+          # 변경된 내역을 스테이징
+          git add .github/workflows
+
+          # 변경사항이 있을 경우에만 커밋하여 에러 방지
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "chore: Sync with upstream develop, keeping workflows"
+          fi
+
+          # 내 개인 레포(origin)의 main 브랜치로 강제 푸시
+          git push --force origin main
