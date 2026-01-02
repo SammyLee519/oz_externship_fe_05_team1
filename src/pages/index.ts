@@ -1,0 +1,7 @@
+export { default as MainPage } from './MainPage'
+export { default as NotFound } from './NotFound'
+export { default as ExamManagementPage } from './ExamManagementPage'
+export { default as AdminLoginPage } from './AdminLoginPage'
+export { default as DistributionHistoryManagementPage } from './DistributionHistoryManagementPage'
+export { default as SubmissionManagementPage } from './SubmissionManagementPage'
+export { default as CreateQuestionPage } from './CreateQuestionPage'
