@@ -1,0 +1,25 @@
+name: Upstream Sync
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # 6시간마다 자동 실행
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target repo
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Sync upstream
+        uses: aormsby/fork-sync-with-upstream-action@v3.4
+        with:
+          target_sync_branch: main
+          target_repo_token: ${{ secrets.GITHUB_TOKEN }}
+          upstream_sync_branch: develop # 학원 레포의 'develop'을 가져옴
+          upstream_sync_repo: OZ-Coding-School/oz_externship_fe_05_team1
+          test_mode: false
