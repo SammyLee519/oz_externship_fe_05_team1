@@ -27,7 +27,6 @@ jobs:
         run: npm install
 
       - name: Build Storybook
-        # 개발용인 storybook 대신, 배포용 빌드 명령어인 build-storybook사용
         run: npm run build-storybook
 
       - name: Setup Pages
@@ -36,6 +35,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
+          # 스토리북 빌드 결과물이 저장되는 기본 폴더명 확인
           path: './storybook-static'
 
       - name: Deploy to GitHub Pages
